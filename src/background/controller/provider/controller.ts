@@ -635,7 +635,7 @@ class ProviderController extends BaseController {
 
   walletRequestPermissions = ({ data: { params: permissions } }) => {
     const result: Web3WalletPermission[] = [];
-    if (permissions && 'eth_accounts' in permissions[0]) {
+    if ('eth_accounts' in permissions?.[0]) {
       result.push({ parentCapability: 'eth_accounts' });
     }
     return result;
