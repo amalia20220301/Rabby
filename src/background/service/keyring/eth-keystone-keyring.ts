@@ -3,8 +3,46 @@ import { toChecksumAddress } from 'ethereumjs-util';
 
 const pathBase = 'm';
 
+export const AcquireMemeStoreData = 'AcquireMemeStoreData';
+export const MemStoreDataReady = 'MemStoreDataReady';
+
+export type RequestSignPayload = {
+  requestId: string;
+  payload: {
+    type: string;
+    cbor: string;
+  };
+};
+
 export default class KeystoneKeyring extends MetaMaskKeyring {
   perPage = 10;
+  memStoreData: RequestSignPayload | undefined;
+  constructor() {
+    super();
+    this.getMemStore().subscribe((data) => {
+      this.memStoreData = data.sign?.request;
+    });
+    this.getInteraction().on(AcquireMemeStoreData, () => {
+      this.getInteraction().emit(MemStoreDataReady, () =>
+        this.acquireMemstoreData()
+      );
+    });
+  }
+
+  acquireMemstoreData() {
+    return new Promise((resolve) => {
+      if (this.memStoreData) {
+        resolve(this.memStoreData);
+      } else {
+        this.getMemStore().subscribe((data) => {
+          const request = data.sign?.request;
+          if (request) {
+            resolve(request);
+          }
+        });
+      }
+    });
+  }
 
   async getAddresses(start: number, end: number) {
     if (!this.initialized) {

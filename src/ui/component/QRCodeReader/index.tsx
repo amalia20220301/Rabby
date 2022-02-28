@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { BrowserQRCodeReader } from '@zxing/browser';
+import { BrowserQRCodeReader } from '@zxing/library';
 import './style.less';
 
 interface QRCodeReaderProps {
@@ -7,7 +7,6 @@ interface QRCodeReaderProps {
   onError?(): void;
   width?: number;
   height?: number;
-  isUR?: boolean;
 }
 
 const QRCodeReader = ({
@@ -15,7 +14,6 @@ const QRCodeReader = ({
   onError,
   width = 100,
   height = 100,
-  isUR = false,
 }: QRCodeReaderProps) => {
   const videoEl = useRef<HTMLVideoElement>(null);
   const controls = useRef<any>(null);
@@ -23,19 +21,12 @@ const QRCodeReader = ({
     try {
       const reader = new BrowserQRCodeReader();
       controls.current = reader;
-      const devices = await BrowserQRCodeReader.listVideoInputDevices();
-      await reader.decodeFromVideoDevice(
-        devices[0].deviceId,
-        videoEl.current!,
-        (result, error) => {
-          if (error) return;
-          if (result) {
-            onSuccess(result.getText());
-          }
-        }
+      await reader.getVideoInputDevices();
+      const result = await reader.decodeFromInputVideoDevice(
+        undefined,
+        videoEl.current!
       );
-      // console.log('result', result);
-      // onSuccess(result.getText());
+      onSuccess(result.getText());
     } catch (e: any) {
       if (!/ended/.test(e.message)) {
         // Magic error message for Video stream has ended before any code could be detected
