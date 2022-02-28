@@ -41,7 +41,7 @@ import {
 import { ERC20ABI } from 'consts/abi';
 import { Account, ChainGas } from '../service/preference';
 import { ConnectedSite } from '../service/permission';
-import { ExplainTxResponse, TokenItem } from '../service/openapi';
+import { ExplainTxResponse, TokenItem, Tx } from '../service/openapi';
 import DisplayKeyring from '../service/keyring/display';
 import provider from './provider';
 import WalletConnectKeyring from '@rabby-wallet/eth-walletconnect-keyring';
@@ -926,8 +926,8 @@ export class WalletController extends BaseController {
     return stashKeyringId;
   };
 
-  submitQRHardwareCryptoHDKey = () => {
-    let keyring, isNewKey;
+  submitQRHardwareCryptoHDKey = async (cbor: string) => {
+    let keyring;
     let stashKeyringId: number | null = null;
     const keyringType = KEYRING_CLASS.QRCODE;
     try {
@@ -935,11 +935,27 @@ export class WalletController extends BaseController {
     } catch {
       const QRCodeKeyring = keyringService.getKeyringClassForType(keyringType);
       keyring = new QRCodeKeyring();
+      if (!keyring.initialized) {
+        keyring.readKeyring();
+      }
+      await keyring.submitCryptoHDKey(cbor);
       stashKeyringId = Object.values(stashKeyrings).length;
       stashKeyrings[stashKeyringId] = keyring;
     }
-    // TODO
     return stashKeyringId;
+  };
+
+  submitQRHardwareSignature = async (requestId: string, cbor: string) => {
+    try {
+      const account = await preferenceService.getCurrentAccount();
+      const keyring = await keyringService.getKeyringForAccount(
+        account!.address,
+        KEYRING_CLASS.QRCODE
+      );
+      return await keyring.submitSignature(requestId, cbor);
+    } catch (e) {
+      console.error(`submitQRHardwareSignature with error ${e}`);
+    }
   };
 
   signPersonalMessage = async (
@@ -973,7 +989,7 @@ export class WalletController extends BaseController {
     options?: any
   ) => {
     const keyring = await keyringService.getKeyringForAccount(from, type);
-    return keyringService.signTransaction(keyring, data, options);
+    return keyringService.signTransaction(keyring, data, from, options);
   };
 
   requestKeyring = (type, methodName, keyringId: number | null, ...params) => {
