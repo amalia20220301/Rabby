@@ -93,7 +93,6 @@ const AddressList: any = forwardRef(
     }: AddressListProps,
     ref
   ) => {
-    const wallet = useWallet();
     const [start, setStart] = useState(0);
     const [end, setEnd] = useState(10);
     const [editIndex, setEditIndex] = useState(0);
