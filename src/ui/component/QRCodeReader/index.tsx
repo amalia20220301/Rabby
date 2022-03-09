@@ -1,10 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BrowserQRCodeReader } from '@zxing/browser';
 import './style.less';
 
 interface QRCodeReaderProps {
   onSuccess(text: string): void;
+
   onError?(): void;
+
   width?: number;
   height?: number;
   isUR?: boolean;
@@ -17,46 +19,46 @@ const QRCodeReader = ({
   height = 100,
   isUR = false,
 }: QRCodeReaderProps) => {
+  const [canplay, setCanplay] = useState(false);
+  const codeReader = useMemo(() => {
+    return new BrowserQRCodeReader();
+  }, []);
   const videoEl = useRef<HTMLVideoElement>(null);
-  const controls = useRef<any>(null);
-  const init = async () => {
-    try {
-      const reader = new BrowserQRCodeReader();
-      controls.current = reader;
-      const devices = await BrowserQRCodeReader.listVideoInputDevices();
-      await reader.decodeFromVideoDevice(
-        devices[0].deviceId,
-        videoEl.current!,
-        (result, error) => {
-          if (error) return;
-          if (result) {
-            onSuccess(result.getText());
-          }
-        }
-      );
-      // console.log('result', result);
-      // onSuccess(result.getText());
-    } catch (e: any) {
-      if (!/ended/.test(e.message)) {
-        // Magic error message for Video stream has ended before any code could be detected
-        onError && onError();
-      }
-    }
-  };
-
   useEffect(() => {
-    init();
-    return () => {
-      if (controls.current) {
-        controls.current.stop();
-        controls.current.reset();
-        controls.current = null;
-      }
+    const videoElem = document.getElementById('video');
+    const canplayListener = () => {
+      setCanplay(true);
     };
-  });
+    videoElem!.addEventListener('canplay', canplayListener);
+    const promise = codeReader.decodeFromVideoDevice(
+      undefined,
+      'video',
+      (result) => {
+        if (result) {
+          onSuccess(result.getText());
+        }
+      }
+    );
+    return () => {
+      videoElem!.removeEventListener('canplay', canplayListener);
+      promise
+        .then((controls) => {
+          if (controls) {
+            controls.stop();
+          }
+        })
+        .catch(console.log);
+    };
+  }, []);
+
   return (
     <video
-      style={{ width: `${width}px`, height: `${height}px` }}
+      id="video"
+      style={{
+        display: canplay ? 'block' : 'none',
+        width: `${width}px`,
+        height: `${height}px`,
+      }}
       ref={videoEl}
       className="qrcode-reader-comp"
     ></video>

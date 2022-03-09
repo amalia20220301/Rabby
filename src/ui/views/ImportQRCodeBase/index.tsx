@@ -10,6 +10,7 @@ import { openInternalPageInTab } from 'ui/utils/webapi';
 import './style.less';
 
 import KeystoneLogo from 'ui/assets/walletlogo/keystone.png';
+import { HARDWARE_KEYRING_TYPES } from 'consts';
 
 const ImportQRCodeBase = () => {
   const { t } = useTranslation();
@@ -22,11 +23,12 @@ const ImportQRCodeBase = () => {
     decoder.current.receivePart(data);
     if (decoder.current.isComplete()) {
       const result = decoder.current.resultUR();
+      result.cbor.toString('hex');
       const stashKeyringId = await wallet.submitQRHardwareCryptoHDKey(
         result.cbor.toString('hex')
       );
       history.push({
-        pathname: '/import/select-address',
+        pathname: '/popup/import/select-address',
         state: {
           keyring: HARDWARE_KEYRING_TYPES.KeyStone.type,
           keyringId: stashKeyringId,
@@ -87,8 +89,8 @@ const ImportQRCodeBase = () => {
       </header>
       <div className="flex justify-center qrcode-scanner">
         <QRCodeReader
-          width={250}
-          height={250}
+          width={176}
+          height={176}
           onSuccess={handleScanQRCodeSuccess}
           onError={handleScanQRCodeError}
         />
