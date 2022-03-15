@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Form } from 'antd';
 import { useHistory } from 'react-router-dom';
 import { composeInitialProps, useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import './style.less';
 
 import KeystoneLogo from 'ui/assets/walletlogo/keystone.png';
 import { HARDWARE_KEYRING_TYPES } from 'consts';
+import QRCodeCheckerDetail from 'ui/views/QRCodeCheckerDetail';
 
 const ImportQRCodeBase = () => {
   const { t } = useTranslation();
@@ -60,6 +61,10 @@ const ImportQRCodeBase = () => {
     };
   }, []);
 
+  const handleScan = () => {
+    setErrorMessage('');
+    setScan(true);
+  };
   return (
     <StrayPageWithButton
       form={form}
@@ -88,12 +93,24 @@ const ImportQRCodeBase = () => {
         <img src="/images/watch-mask.png" className="mask" />
       </header>
       <div className="flex justify-center qrcode-scanner">
-        <QRCodeReader
-          width={176}
-          height={176}
-          onSuccess={handleScanQRCodeSuccess}
-          onError={handleScanQRCodeError}
-        />
+        {scan && (
+          <QRCodeReader
+            width={176}
+            height={176}
+            onSuccess={handleScanQRCodeSuccess}
+            onError={handleScanQRCodeError}
+          />
+        )}
+        {showErrorChecker && (
+          <QRCodeCheckerDetail
+            visible={showErrorChecker}
+            onCancel={handleClickBack}
+            data={errorMessage}
+            onOk={handleScan}
+            okText={t('Try Again')}
+            cancelText={t('Cancel')}
+          />
+        )}
       </div>
     </StrayPageWithButton>
   );

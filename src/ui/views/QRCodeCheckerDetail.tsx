@@ -3,7 +3,7 @@ import { Button, Drawer } from 'antd';
 import { useTranslation } from 'react-i18next';
 import IconArrowRight from 'ui/assets/arrow-right-gray.svg';
 
-const SignatureQRChecker = ({
+const QRCodeCheckerDetail = ({
   visible,
   data,
   okText = 'Try Again',
@@ -60,4 +60,4 @@ const SignatureQRChecker = ({
   );
 };
 
-export default SignatureQRChecker;
+export default QRCodeCheckerDetail;
