@@ -19,22 +19,50 @@ const ImportQRCodeBase = () => {
   const wallet = useWallet();
   const [form] = Form.useForm();
   const decoder = useRef(new URDecoder());
+  const [errorMessage, setErrorMessage] = useState('');
+  const [scan, setScan] = useState(true);
+
+  const showErrorChecker = useMemo(() => {
+    return errorMessage !== '';
+  }, [errorMessage]);
 
   const handleScanQRCodeSuccess = async (data) => {
-    decoder.current.receivePart(data);
-    if (decoder.current.isComplete()) {
-      const result = decoder.current.resultUR();
-      result.cbor.toString('hex');
-      const stashKeyringId = await wallet.submitQRHardwareCryptoHDKey(
-        result.cbor.toString('hex')
+    try {
+      decoder.current.receivePart(data);
+      if (decoder.current.isComplete()) {
+        const result = decoder.current.resultUR();
+        let stashKeyringId;
+        if (result.type === 'crypto-hdkey') {
+          stashKeyringId = await wallet.submitQRHardwareCryptoHDKey(
+            result.cbor.toString('hex')
+          );
+        } else if (result.type === 'crypto-account') {
+          stashKeyringId = await wallet.submitQRHardwareCryptoAccount(
+            result.cbor.toString('hex')
+          );
+        } else {
+          setErrorMessage(
+            t(
+              'Invalid QR code. Please scan the sync QR code of the hardware wallet.'
+            )
+          );
+          return;
+        }
+        history.push({
+          pathname: '/popup/import/select-address',
+          state: {
+            keyring: HARDWARE_KEYRING_TYPES.KeyStone.type,
+            keyringId: stashKeyringId,
+          },
+        });
+      }
+    } catch (e) {
+      setScan(false);
+      setErrorMessage(
+        t(
+          'Invalid QR code. Please scan the sync QR code of the hardware wallet.'
+        )
       );
-      history.push({
-        pathname: '/popup/import/select-address',
-        state: {
-          keyring: HARDWARE_KEYRING_TYPES.KeyStone.type,
-          keyringId: stashKeyringId,
-        },
-      });
     }
   };
 
