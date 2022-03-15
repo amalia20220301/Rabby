@@ -927,7 +927,7 @@ export class WalletController extends BaseController {
   };
 
   submitQRHardwareCryptoHDKey = async (cbor: string) => {
-    let keyring;
+    let keyring, isNewKey;
     let stashKeyringId: number | null = null;
     const keyringType = KEYRING_CLASS.QRCODE;
     try {
@@ -935,10 +935,31 @@ export class WalletController extends BaseController {
     } catch {
       const QRCodeKeyring = keyringService.getKeyringClassForType(keyringType);
       keyring = new QRCodeKeyring();
-      if (!keyring.initialized) {
-        keyring.readKeyring();
-      }
-      await keyring.submitCryptoHDKey(cbor);
+      isNewKey = true;
+    }
+    keyring.readKeyring();
+    await keyring.submitCryptoHDKey(cbor);
+    if (isNewKey) {
+      stashKeyringId = Object.values(stashKeyrings).length;
+      stashKeyrings[stashKeyringId] = keyring;
+    }
+    return stashKeyringId;
+  };
+
+  submitQRHardwareCryptoAccount = async (cbor: string) => {
+    let keyring, isNewKey;
+    let stashKeyringId: number | null = null;
+    const keyringType = KEYRING_CLASS.QRCODE;
+    try {
+      keyring = this._getKeyringByType(keyringType);
+    } catch {
+      const QRCodeKeyring = keyringService.getKeyringClassForType(keyringType);
+      keyring = new QRCodeKeyring();
+      isNewKey = true;
+    }
+    keyring.readKeyring();
+    await keyring.submitCryptoAccount(cbor);
+    if (isNewKey) {
       stashKeyringId = Object.values(stashKeyrings).length;
       stashKeyrings[stashKeyringId] = keyring;
     }
