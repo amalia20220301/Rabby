@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { StrayPageWithButton } from 'ui/component';
 import eventBus from '@/eventBus';
 import { useApproval } from 'ui/utils';
-import SignatureQRChecker from './SignatureQRChecker';
+import QRCodeCheckerDetail from '../../../QRCodeCheckerDetail';
 import { useHistory } from 'react-router-dom';
 
 enum QRHARDWARE_STATUS {
@@ -114,7 +114,7 @@ const QRHardWareWaiting = () => {
           />
         )}
         {showErrorChecker && (
-          <SignatureQRChecker
+          <QRCodeCheckerDetail
             visible={showErrorChecker}
             onCancel={handleCancel}
             data={errorMessage}
