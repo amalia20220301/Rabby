@@ -33,13 +33,11 @@ export default class KeystoneKeyring extends MetaMaskKeyring {
     return new Promise((resolve) => {
       if (this.memStoreData) {
         resolve(this.memStoreData);
-        this.memStoreData = undefined;
       } else {
         this.getMemStore().subscribe((data) => {
           const request = data.sign?.request;
           if (request) {
             resolve(request);
-            this.memStoreData = undefined;
           }
         });
       }
