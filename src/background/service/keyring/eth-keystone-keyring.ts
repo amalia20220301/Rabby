@@ -44,6 +44,26 @@ export default class KeystoneKeyring extends MetaMaskKeyring {
     });
   }
 
+  forgetDevice = () => {
+    //common props
+    this.page = 0;
+    this.perPage = 5;
+    this.accounts = [];
+    this.currentAccount = 0;
+    this.name = 'QR Hardware';
+    this.initialized = false;
+
+    //hd props;
+    this.xfp = '';
+    this.xpub = '';
+    this.hdPath = '';
+    this.indexes = {};
+    this.hdk = undefined;
+
+    //pubkey props;
+    this.paths = {};
+  };
+
   async serialize(): Promise<IStoredKeyring> {
     const data = await super.serialize();
     return {

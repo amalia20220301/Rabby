@@ -1293,6 +1293,8 @@ export class WalletController extends BaseController {
       stashKeyringId = Object.values(stashKeyrings).length + 1;
       stashKeyrings[stashKeyringId] = keyring;
     }
+    //clean keyring data for next sync;
+    keyring.forgetDevice();
     keyring.readKeyring();
     await keyring.submitCryptoHDKey(cbor);
     return stashKeyringId;

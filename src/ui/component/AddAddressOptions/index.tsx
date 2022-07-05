@@ -16,6 +16,7 @@ import IconAddwatchmodo from 'ui/assets/walletlogo/addwatchmode.svg';
 import {
   IS_CHROME,
   WALLET_BRAND_CONTENT,
+  KEYRING_CLASS,
   BRAND_WALLET_CONNECT_TYPE,
   IWalletBrandContent,
 } from 'consts';
@@ -68,7 +69,7 @@ const AddAddressOptions = () => {
     setSavedWalletData(savedTemp);
   };
   type Valueof<T> = T[keyof T];
-  const connectRouter = (item: Valueof<typeof WALLET_BRAND_CONTENT>) => {
+  const connectRouter = async (item: Valueof<typeof WALLET_BRAND_CONTENT>) => {
     if (item.connectType === 'BitBox02Connect') {
       openInternalPageInTab('import/hardware?connectType=BITBOX02');
     } else if (item.connectType === 'GridPlusConnect') {
@@ -86,12 +87,24 @@ const AddAddressOptions = () => {
         pathname: '/import/gnosis',
       });
     } else if (item.connectType === BRAND_WALLET_CONNECT_TYPE.QRCodeBase) {
-      history.push({
-        pathname: '/import/qrcode',
-        state: {
-          brand: item.brand,
-        },
-      });
+      const keystoneAccounts = await wallet.getTypedAccounts(
+        KEYRING_CLASS.HARDWARE.KEYSTONE
+      );
+      if (keystoneAccounts.length > 0) {
+        history.push({
+          pathname: '/popup/import/select-address',
+          state: {
+            keyring: KEYRING_CLASS.HARDWARE.KEYSTONE,
+          },
+        });
+      } else {
+        history.push({
+          pathname: '/import/qrcode',
+          state: {
+            brand: item.brand,
+          },
+        });
+      }
     } else {
       history.push({
         pathname: '/import/wallet-connect',
